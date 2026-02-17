@@ -1,7 +1,8 @@
 /* fileUtils.h */
 #ifndef ___FILEUTILS_H
 #define ___FILEUTILS_H
-extern void fileToString(char h[100], char filename[100]);
-extern int fileToInt(char filename[100]);
-extern double fileTodouble(char filename[100]);
+extern void fileToString(char *h, size_t h_size, const char *filename);
+extern double fileTodouble(const char *filename);
+extern int fileToInt(const char *filename);
+extern int configDirExists(void);
 #endif
