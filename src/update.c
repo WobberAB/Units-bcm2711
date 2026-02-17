@@ -68,8 +68,8 @@ void update(){
   mysql_free_result(result);
   memset(&query[0], 0, sizeof(query));
   snprintf(query, sizeof query, "INSERT INTO `gpio` (`address`, `pin`, `value`, `req`, `timestamp`) \
-				  VALUES ('%sgpio', %d, %d, -1001, UNIX_TIMESTAMP()) \
-				  ON DUPLICATE KEY UPDATE `value` = %d, `timestamp` = UNIX_TIMESTAMP()", config.prefix, x, gpioPins[x], gpioPins[x]);
+				  VALUES ('%sgpio', %d, %d, -1001, UNIX_TIMESTAMP(NOW(6))*1000000) \
+				  ON DUPLICATE KEY UPDATE `value` = %d, `timestamp` = UNIX_TIMESTAMP(NOW(6))*1000000", config.prefix, x, gpioPins[x], gpioPins[x]);
   if (mysql_query(con, query)){
    bwlog("update: %s", mysql_error(con));
    exit(EXIT_FAILURE);
@@ -146,7 +146,7 @@ void updateOutput(void){
     }
    }
    memset(&query[0], 0, sizeof(query));
-   snprintf(query, sizeof query, "UPDATE `gpio` SET `req` = -1001, `timestamp` = UNIX_TIMESTAMP() WHERE `gpio`.`address` = '%sgpio' AND `gpio`.`pin` = %s", config.prefix, row[1]);
+   snprintf(query, sizeof query, "UPDATE `gpio` SET `req` = -1001, `timestamp` = UNIX_TIMESTAMP(NOW(6))*1000000 WHERE `gpio`.`address` = '%sgpio' AND `gpio`.`pin` = %s", config.prefix, row[1]);
    if (mysql_query(con, query)){
     bwlog("updateOutput: %s", mysql_error(con));
     exit(EXIT_FAILURE);
