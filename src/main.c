@@ -1,6 +1,4 @@
-char LOGFILE[250] =  "/mnt/ramdisk/log/units-bcm2711.log";
-#define REVISION "13RC2"
-
+#define REVISION "13RC6"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -13,44 +11,12 @@ char LOGFILE[250] =  "/mnt/ramdisk/log/units-bcm2711.log";
 #include <signal.h>
 #include <math.h>
 #include "config.h"
-#include "bwlog.h"
 #include "tables.h"
 #include "prefix.h"
 #include "update.h"
 #include "pid.h"
 #include "invert.h"
 #include "gpio.h"
-
-static void hdl (int sig, siginfo_t *siginfo, void *context);
-//Signal handler for SIGTERM, SIGINT, SIGUSR1
-static void hdl (int sig, siginfo_t *siginfo, void *context){
- if(siginfo->si_signo == SIGABRT){
-  bwlog("prob some glibc trouble! Exiting");
-  exit(EXIT_FAILURE);
- }
-
- if(siginfo->si_signo == SIGQUIT){
-  exit(EXIT_FAILURE);
- }
-
- if(siginfo->si_signo == SIGUSR1){
-  update();
-  return;
- }
-
- if(siginfo->si_signo == SIGUSR2){
-  updateOutput();
-  return;
- }
-
- if(siginfo->si_signo == SIGSEGV){
-  bwlog("Segmentaion fault! Exiting");
-  exit(EXIT_FAILURE);
- }
-
- bwlog("Service was killed by UID: %ld", (long)siginfo->si_uid);
- exit(EXIT_FAILURE);
-}
 
 int main(){
  //check if another "units" is already running
@@ -59,35 +25,21 @@ int main(){
   exit(EXIT_FAILURE);
  }
 
- struct sigaction act;
- memset (&act, '\0', sizeof(act));
- /* Use the sa_sigaction field because the handles has two additional parameters */
- act.sa_sigaction = &hdl;
- /* The SA_SIGINFO flag tells sigaction() to use the sa_sigaction field, not sa_handler. */
- act.sa_flags = SA_SIGINFO;
+ if (createPrefix()){
+  fprintf(stderr, "Failed to create prefix\n");
+  return EXIT_FAILURE;
+ }
 
- // Bind to SIGINT (ctrl+c)
- sigaction(SIGINT, &act, NULL);
- // Bind to SIGTERM (reboot)
- sigaction(SIGTERM, &act, NULL);
- // Bind to SIGUSR1
- sigaction(SIGUSR1, &act, NULL);
- // Bind to SIGUSR2
- sigaction(SIGUSR2, &act, NULL);
- // Bind to SIGSEGV (segmentation failt)
- sigaction(SIGSEGV, &act, NULL);
- // Bind to SIGABRT
- sigaction(SIGABRT, &act, NULL);
- // Bind to SIGQUIT
- sigaction(SIGINT, &act, NULL);
+ if (loadConfiguration()){
+  fprintf(stderr, "Failed to load configuration\n");
+  return EXIT_FAILURE;
+ }
 
- loadConfiguration();
-
- bwlog("Using table prefix: %s", config.prefix);
+ printf("Using table prefix: %s", config.prefix);
  config.pi = pigpio_start(config.pigpiodHost, config.pigpiodPort);
  createTables();
- bwlog("Delay between automatic(non-interrupt) update: %d Sec", config.delay);
- bwlog("gpio SQL Daemon v%s started successfully", REVISION);
+ printf("Delay between automatic(non-interrupt) update: %d Sec", config.delay);
+ printf("gpio SQL Daemon v%s started successfully", REVISION);
 
  initGpio();
  update();

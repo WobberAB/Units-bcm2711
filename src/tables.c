@@ -3,24 +3,23 @@
 #include <stdlib.h>
 #include <string.h>
 #include "config.h"
-#include "bwlog.h"
 #include "tables.h"
 
 void createTables(void){
  MYSQL *con = mysql_init(NULL);
  if (con == NULL){
-  bwlog("createTables: %s ", mysql_error(con));
+  printf("createTables: %s ", mysql_error(con));
   exit(EXIT_FAILURE);
  }
 
  if (mysql_real_connect(con, config.host, config.user, config.pass,
   config.database, 0, NULL, 0) == NULL){
-  bwlog("createTables: %s ", mysql_error(con));
+  printf("createTables: %s ", mysql_error(con));
   exit(EXIT_FAILURE);
  }
 
 
- bwlog("Creating gpio table...");
+ printf("Creating gpio table...");
  char query[2000] ="";
  snprintf(query, sizeof query, "CREATE TABLE IF NOT EXISTS `gpio` (   \
 				`address` VARCHAR(20) DEFAULT NULL, \
@@ -33,16 +32,16 @@ void createTables(void){
 				ENGINE=MEMORY DEFAULT CHARSET=ascii COLLATE=ascii_general_ci");
 
  if (mysql_query(con, query)){
-  bwlog("There was a problem creating gpio-table!");
-  bwlog("createTables: %s ", mysql_error(con));
+  printf("There was a problem creating gpio-table!");
+  printf("createTables: %s ", mysql_error(con));
   exit(EXIT_FAILURE);
  }else{
-  bwlog("gpio table created successfully!");
+  printf("gpio table created successfully!");
  }
 
  memset(&query[0], 0, sizeof(query));
 
- bwlog("Creating gpio-conf table...");
+ printf("Creating gpio-conf table...");
  snprintf(query, sizeof query, "CREATE TABLE IF NOT EXISTS `gpio-conf` (   \
 				`address` VARCHAR(20) DEFAULT NULL, \
 				`pin` INT(2) DEFAULT NULL, \
@@ -54,20 +53,20 @@ void createTables(void){
 				`enabled` INT(2) DEFAULT 1 COMMENT '0=disabled, 1=enabled', \
 				PRIMARY KEY (`address`,`pin`)) DEFAULT CHARSET=ascii COLLATE=ascii_general_ci");
  if (mysql_query(con, query)){
-  bwlog("There was a problem creating gpio-conf table!");
-  bwlog("createTables: %s ", mysql_error(con));
+  printf("There was a problem creating gpio-conf table!");
+  printf("createTables: %s ", mysql_error(con));
   exit(EXIT_FAILURE);
  }else{
-  bwlog("gpio-conf table created successfully!");
+  printf("gpio-conf table created successfully!");
  }
 
- bwlog("Creating trigger gpioReqUpdated in db %s", config.database);
+/* printf("Creating trigger gpioReqUpdated in db %s", config.database);
  memset(&query[0], 0, sizeof(query));
  snprintf(query, sizeof query, "DROP TRIGGER IF EXISTS `gpioReqUpdated`;");
 
  if (mysql_query(con, query)){
-  bwlog("There was a problem creating trigger gpioReqUpdated!");
-  bwlog("createTables: %s ", mysql_error(con));
+  printf("There was a problem creating trigger gpioReqUpdated!");
+  printf("createTables: %s ", mysql_error(con));
   exit(EXIT_FAILURE);
  }
  memset(&query[0], 0, sizeof(query));
@@ -84,10 +83,10 @@ void createTables(void){
                                 END IF; \
                                 END;");
  if (mysql_query(con, query)){
-  bwlog("There was a problem creating gpio-conf req-trigger!");
-  bwlog("createTables: %s ", mysql_error(con));
+  printf("There was a problem creating gpio-conf req-trigger!");
+  printf("createTables: %s ", mysql_error(con));
   exit(EXIT_FAILURE);
- }
+ }*/
  mysql_close(con);
  return;
 }

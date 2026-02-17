@@ -3,26 +3,22 @@
 #include <stdio.h>
 #include <pigpiod_if2.h>
 #include <string.h>
-#include "bwlog.h"
 #include "config.h"
 #include "update.h"
 #include "invert.h"
 #include "gpio.h"
 
-int UPDATING = 0;
 int gpioPins[28] = {-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001};	// DEFAULT SET AS UNINITALIZED
 
 void update(){
- while(UPDATING){}
- UPDATING = 1; //LOCK i2c AND mysql REQUESTS
  MYSQL *con = mysql_init(NULL);
   if (con == NULL){
-   bwlog("update: %s", mysql_error(con));
+   printf("update: %s", mysql_error(con));
    exit(EXIT_FAILURE);
   }
 
  if (mysql_real_connect(con, config.host, config.user, config.pass, config.database, 0, NULL, 0) == NULL){
-  bwlog("update: %s", mysql_error(con));
+  printf("update: %s", mysql_error(con));
   exit(EXIT_FAILURE);
  }
 
@@ -30,7 +26,7 @@ void update(){
  for(int x=0;x<=27;x++){
   snprintf(query, sizeof query, "SELECT `inverted`, `enabled`, `direction` FROM `gpio-conf` WHERE `enabled`=1 AND `address` LIKE '%%%sgpio%%' AND `pin` = %d", config.prefix, x);
   if (mysql_query(con, query)){
-   bwlog("update: %s", mysql_error(con));
+   printf("update: %s", mysql_error(con));
    exit(EXIT_FAILURE);
   }
   MYSQL_RES *result = mysql_store_result(con);
@@ -71,24 +67,23 @@ void update(){
 				  VALUES ('%sgpio', %d, %d, -1001, UNIX_TIMESTAMP(NOW(6))*1000000) \
 				  ON DUPLICATE KEY UPDATE `value` = %d, `timestamp` = UNIX_TIMESTAMP(NOW(6))*1000000", config.prefix, x, gpioPins[x], gpioPins[x]);
   if (mysql_query(con, query)){
-   bwlog("update: %s", mysql_error(con));
+   printf("update: %s", mysql_error(con));
    exit(EXIT_FAILURE);
   }
  }
  mysql_close(con);
- UPDATING = 0; //RELEASE LOCK ON i2c AND mysql
 }
 
 void updateOutput(void){
  MYSQL *con = mysql_init(NULL);
  if (con == NULL){
-   bwlog("updateOutput: %s", mysql_error(con));
+   printf("updateOutput: %s", mysql_error(con));
    exit(EXIT_FAILURE);
  }
 
  if (mysql_real_connect(con, config.host, config.user, config.pass,
   config.database, 0, NULL, 0) == NULL){
-   bwlog("updateOutput: %s", mysql_error(con));
+   printf("updateOutput: %s", mysql_error(con));
    exit(EXIT_FAILURE);
  }
 
@@ -102,7 +97,7 @@ void updateOutput(void){
 				AND `gpio`.`req` != -1001", config.prefix);
 
  if (mysql_query(con, query)){
-  bwlog("updateOutput: %s", mysql_error(con));
+  printf("updateOutput: %s", mysql_error(con));
   exit(EXIT_FAILURE);
  }
 
@@ -113,12 +108,12 @@ void updateOutput(void){
   while ((row = mysql_fetch_row(result))){
    if(atoi(row[3])==0){
     if(atoi(row[0])==0){
-     bwlog("Gpio %d requested value %d", atoi(row[1]), atoi(row[2]));
+     printf("Gpio %d requested value %d", atoi(row[1]), atoi(row[2]));
      gpio_write(config.pi, atoi(row[1]), atoi(row[2]));
     }
 
     if(atoi(row[0])==1){
-     bwlog("Gpio %d requested value %d", atoi(row[1]), atoi(row[2]));
+     printf("Gpio %d requested value %d", atoi(row[1]), atoi(row[2]));
      gpio_write(config.pi, atoi(row[1]), invert(atoi(row[2])));
     }
    }
@@ -127,19 +122,19 @@ void updateOutput(void){
     if(atoi(row[2])<0){
      set_PWM_frequency(config.pi, (unsigned int)atoi(row[1]), 100000);
      set_PWM_dutycycle(config.pi, (unsigned int)atoi(row[1]), 0 * 2.55);
-     bwlog("Gpio PWM-OUT pin %d requested value (%d) is to low, setting to 0", atoi(row[1]), atoi(row[2]));
+     printf("Gpio PWM-OUT pin %d requested value (%d) is to low, setting to 0", atoi(row[1]), atoi(row[2]));
      gpioPins[atoi(row[1])] = 0;
     }
 
     if(atoi(row[2])>100){
      set_PWM_frequency(config.pi, (unsigned int)atoi(row[1]), 100000);
      set_PWM_dutycycle(config.pi, (unsigned int)atoi(row[1]), 100 * 2.55);
-     bwlog("Gpio PWM-OUT pin %d requested value (%d) is to high, setting to 100", atoi(row[1]), atoi(row[2]));
+     printf("Gpio PWM-OUT pin %d requested value (%d) is to high, setting to 100", atoi(row[1]), atoi(row[2]));
      gpioPins[atoi(row[1])] = 100;
     }
 
     if((atoi(row[2])<=100) && (atoi(row[2])>=0)){
-     bwlog("Gpio PWM-OUT pin %d requested value %d", atoi(row[1]), atoi(row[2]));
+     printf("Gpio PWM-OUT pin %d requested value %d", atoi(row[1]), atoi(row[2]));
      set_PWM_frequency(config.pi, (unsigned int)atoi(row[1]), 100000);
      set_PWM_dutycycle(config.pi, (unsigned int)atoi(row[1]), atoi(row[2]) * 2.55);
      gpioPins[atoi(row[1])] = atoi(row[2]);
@@ -148,7 +143,7 @@ void updateOutput(void){
    memset(&query[0], 0, sizeof(query));
    snprintf(query, sizeof query, "UPDATE `gpio` SET `req` = -1001, `timestamp` = UNIX_TIMESTAMP(NOW(6))*1000000 WHERE `gpio`.`address` = '%sgpio' AND `gpio`.`pin` = %s", config.prefix, row[1]);
    if (mysql_query(con, query)){
-    bwlog("updateOutput: %s", mysql_error(con));
+    printf("updateOutput: %s", mysql_error(con));
     exit(EXIT_FAILURE);
    }
   }
@@ -157,7 +152,7 @@ void updateOutput(void){
  memset(&query[0], 0, sizeof(query));
 
  if (mysql_query(con, "CHECKSUM TABLE `gpio-conf`")){
-  bwlog("updateOutput checksum: %s", mysql_error(con));
+  printf("updateOutput checksum: %s", mysql_error(con));
   exit(EXIT_FAILURE);
  }
 

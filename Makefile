@@ -5,7 +5,7 @@ SOURCE_DIR=src
 OBJECT_DIR=obj
 LIBS=-I/usr/include/mariadb -lmariadb -pthread -ldl -lm -lpthread -lz -lpigpiod_if2
 
-$(BUILD_DIR)/units-bcm2711: $(OBJECT_DIR)/main.o $(OBJECT_DIR)/config.o  $(OBJECT_DIR)/fileUtils.o $(OBJECT_DIR)/gpio.o $(OBJECT_DIR)/invert.o $(OBJECT_DIR)/pid.o $(OBJECT_DIR)/prefix.o $(OBJECT_DIR)/tables.o $(OBJECT_DIR)/update.o $(OBJECT_DIR)/bwlog.o
+$(BUILD_DIR)/units-bcm2711: $(OBJECT_DIR)/main.o $(OBJECT_DIR)/config.o  $(OBJECT_DIR)/fileUtils.o $(OBJECT_DIR)/gpio.o $(OBJECT_DIR)/invert.o $(OBJECT_DIR)/pid.o $(OBJECT_DIR)/prefix.o $(OBJECT_DIR)/tables.o $(OBJECT_DIR)/update.o
 	$(CC) -o $(BUILD_DIR)/units-bcm2711 $(OBJECT_DIR)/*.o $(CFLAGS) $(LIBS)
 
 $(BUILD_DIR)/gpio-req-update: $(SOURCE_DIR)/gpio-req-update.c $(OBJECT_DIR)/pid.o
@@ -35,9 +35,6 @@ $(OBJECT_DIR)/invert.o: $(SOURCE_DIR)/invert.c
 $(OBJECT_DIR)/gpio.o: $(SOURCE_DIR)/gpio.c
 	$(CC) -c $(SOURCE_DIR)/gpio.c -o $(OBJECT_DIR)/gpio.o
 
-$(OBJECT_DIR)/bwlog.o: $(SOURCE_DIR)/bwlog.c
-	$(CC) -c $(SOURCE_DIR)/bwlog.c -o $(OBJECT_DIR)/bwlog.o
-
 $(OBJECT_DIR)/fileUtils.o: $(SOURCE_DIR)/fileUtils.c
 	$(CC) -c $(SOURCE_DIR)/fileUtils.c -o $(OBJECT_DIR)/fileUtils.o
 
@@ -48,7 +45,6 @@ install:
 	mkdir -p /mnt/ramdisk/log
 	chown -R mysql:mysql /mnt/ramdisk/log
 	cp $(BUILD_DIR)/units-bcm2711 /usr/bin/
-	cp $(BUILD_DIR)/gpio-req-update /usr/bin/
 	cp -rvn conf/* /etc/units/bcm2711/
 
 remove:
@@ -63,7 +59,10 @@ service:
 	service units-bcm2711 restart
 	service units-bcm2711 status
 
-all: $(BUILD_DIR)/units-bcm2711 $(BUILD_DIR)/gpio-req-update install service
+all: $(BUILD_DIR)/units-bcm2711 stop install service
+
+stop:
+	systemctl stop units-bcm2711
 
 clean:
 	rm -f $(BUILD_DIR)/*

@@ -17,5 +17,5 @@ typedef struct config_t {
 }config_t;
 
 extern struct config_t config;
-extern void loadConfiguration(void);
+extern int loadConfiguration(void);
 #endif

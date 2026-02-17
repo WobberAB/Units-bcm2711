@@ -5,7 +5,6 @@
 #include <pigpiod_if2.h>
 #include <math.h>
 #include "config.h"
-#include "bwlog.h"
 #include "invert.h"
 #include "update.h"
 #include "gpio.h"
@@ -13,13 +12,13 @@
 void initGpio(){
  MYSQL *con = mysql_init(NULL);
  if (con == NULL){
- bwlog("initgpioChipSettings: %s", mysql_error(con));
+ printf("initgpioChipSettings: %s", mysql_error(con));
  exit(EXIT_FAILURE);
  }
 
  if (mysql_real_connect(con, config.host, config.user, config.pass,
   config.database, 0, NULL, 0) == NULL){
-  bwlog("initgpioChipSettings: %s", mysql_error(con));
+  printf("initgpioChipSettings: %s", mysql_error(con));
   exit(EXIT_FAILURE);
  }
 
@@ -27,7 +26,7 @@ void initGpio(){
  snprintf(query, sizeof query, "SELECT `address`, `pin`, `direction`, `pullup`, `interrupt`, `inverted`, `enabled`, `glitch` FROM `gpio-conf`");
 
  if (mysql_query(con, query)){
-  bwlog("initgpioChipSettings: %s", mysql_error(con));
+  printf("initgpioChipSettings: %s", mysql_error(con));
   exit(EXIT_FAILURE);
  }
 
@@ -50,13 +49,13 @@ void initGpio(){
     case 0:
      //IF OUTPUT
      set_mode(config.pi, pin, PI_OUTPUT);	// set pin as output
-     bwlog("CREATING OUTPUT: Pin %d", pin);
+     printf("CREATING OUTPUT: Pin %d", pin);
 //     gpio_write(config.pi, pin, 0);		// write pin low(-negative) as default
     break;
 
     case 1:
      //IF INPUT
-     bwlog("CREATING INPUT: Pin %d, Pullup=%d, Interrupt=%d", pin, pullup, interrupt);
+     printf("CREATING INPUT: Pin %d, Pullup=%d, Interrupt=%d", pin, pullup, interrupt);
      set_mode(config.pi, pin, PI_INPUT);
      //SET PULL UP/DOWN/OFF
      switch(pullup){
@@ -74,7 +73,7 @@ void initGpio(){
 
       default:
        set_pull_up_down(config.pi, pin, PI_PUD_OFF);
-       bwlog("Setting inputpin %d default PI_PUD_OFF", pin);
+       printf("Setting inputpin %d default PI_PUD_OFF", pin);
       break;
      }
 
@@ -106,28 +105,28 @@ void initGpio(){
     /* hardwarePWM function takes care of reinitialisation when pin is activated. */
     /* Set as general input only for saftey purpose during bootstrapping */
      set_mode(config.pi, pin, PI_OUTPUT);					// set pin as output
-     bwlog("CREATING PWM: Pin %d", pin);
+     printf("CREATING PWM: Pin %d", pin);
 //     gpio_write(config.pi,pin, 0);						// write pin low(-negative) as default
     break;
 
     default:
      //IF ERRORNEUS OR NO DIRECTION GIVEN IN CONF
      set_mode(config.pi, pin, PI_INPUT);
-     bwlog("ERROR IN CONF: Pin %d, Default mode %d", pin, get_mode(config.pi, pin));
+     printf("ERROR IN CONF: Pin %d, Default mode %d", pin, get_mode(config.pi, pin));
      set_pull_up_down(config.pi, pin, PI_PUD_OFF);
     break;
     }
    }
   }
  }else{
-  bwlog("Missing configuration for (%s)gpio. (Re)configuring all missing with default settings", config.prefix);
+  printf("Missing configuration for (%s)gpio. (Re)configuring all missing with default settings", config.prefix);
   for (int pin=0; pin<=27; pin++){
    if((pin!=2)&&(pin!=3)){ // skip i2c pins
     memset(&query[0], 0, sizeof(query));
     snprintf(query, sizeof query,"INSERT INTO `gpio-conf` (`address`, `pin`, `direction`, `pullup`, `interrupt`, `inverted`, `glitch`, `enabled`) \
 		  VALUES ('%sgpio', %d, 1, 0, 0, 0, -1001, 1)", config.prefix, pin);
     if (mysql_query(con, query)){
-     bwlog("initgpioChipSettings: %s", mysql_error(con));
+     printf("initgpioChipSettings: %s", mysql_error(con));
      exit(EXIT_FAILURE);
     }
    }else{
@@ -135,7 +134,7 @@ void initGpio(){
     snprintf(query, sizeof query,"INSERT INTO `gpio-conf` (`address`, `pin`, `direction`, `pullup`, `interrupt`, `inverted`, `glitch`, `enabled`) \
 		  VALUES ('%sgpio', %d, 1, 0, 0, 0, -1001, 0)", config.prefix, pin);
     if (mysql_query(con, query)){
-     bwlog("initgpioChipSettings: %s", mysql_error(con));
+     printf("initgpioChipSettings: %s", mysql_error(con));
      exit(EXIT_FAILURE);
     }
    }
@@ -145,7 +144,7 @@ void initGpio(){
  mysql_free_result(result);
  //Save checksum of table
  if (mysql_query(con, "CHECKSUM TABLE `gpio-conf`")){
-  bwlog("initgpioChipSettings: %s", mysql_error(con));
+  printf("initgpioChipSettings: %s", mysql_error(con));
   exit(EXIT_FAILURE);
  }else{
   MYSQL_RES *check = mysql_store_result(con);
