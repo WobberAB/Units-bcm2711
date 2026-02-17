@@ -4,12 +4,34 @@
 #include <mysql/mysql.h>
 #include <pigpiod_if2.h>
 #include <math.h>
+#include <ctype.h>
 #include "config.h"
 #include "invert.h"
 #include "update.h"
 #include "gpio.h"
 
+/* SQL Injection Protection: Validate that prefix contains only safe characters.
+ * Prefix should only contain lowercase letters (generated from hostname).
+ * Returns 1 if valid, 0 if contains suspicious characters.
+ */
+static int validate_prefix(const char *prefix) {
+    if (prefix == NULL || prefix[0] == '\0') return 0;
+    for (const char *p = prefix; *p; p++) {
+        if (!islower((unsigned char)*p)) {
+            printf("SECURITY: Invalid character in prefix: '%c' (0x%02x)\n", *p, (unsigned char)*p);
+            return 0;
+        }
+    }
+    return 1;
+}
+
 void initGpio(){
+ /* Validate prefix before using in SQL queries */
+ if (!validate_prefix(config.prefix)) {
+  printf("initGpio: Invalid prefix detected, aborting\n");
+  return;
+ }
+ 
  MYSQL *con = mysql_init(NULL);
  if (con == NULL){
  printf("initgpioChipSettings: %s", mysql_error(con));
@@ -123,6 +145,7 @@ void initGpio(){
   for (int pin=0; pin<=27; pin++){
    if((pin!=2)&&(pin!=3)){ // skip i2c pins
     memset(&query[0], 0, sizeof(query));
+    /* config.prefix validated at function entry - safe to use */
     snprintf(query, sizeof query,"INSERT INTO `gpio-conf` (`address`, `pin`, `direction`, `pullup`, `interrupt`, `inverted`, `glitch`, `enabled`) \
 		  VALUES ('%sgpio', %d, 1, 0, 0, 0, -1001, 1)", config.prefix, pin);
     if (mysql_query(con, query)){
@@ -131,6 +154,7 @@ void initGpio(){
     }
    }else{
     memset(&query[0], 0, sizeof(query));
+    /* config.prefix validated at function entry - safe to use */
     snprintf(query, sizeof query,"INSERT INTO `gpio-conf` (`address`, `pin`, `direction`, `pullup`, `interrupt`, `inverted`, `glitch`, `enabled`) \
 		  VALUES ('%sgpio', %d, 1, 0, 0, 0, -1001, 0)", config.prefix, pin);
     if (mysql_query(con, query)){
@@ -160,4 +184,3 @@ void initGpio(){
  mysql_close(con);
  return;
 }
-

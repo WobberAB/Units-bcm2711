@@ -1,8 +1,9 @@
 #include <unistd.h>
- #include <ctype.h>
- #include <string.h>
- #include "prefix.h"
- #include "config.h"
+#include <stdio.h>
+#include <ctype.h>
+#include <string.h>
+#include "prefix.h"
+#include "config.h"
 
  char hostname[20] = {0};
 

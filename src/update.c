@@ -3,14 +3,57 @@
 #include <stdio.h>
 #include <pigpiod_if2.h>
 #include <string.h>
+#include <ctype.h>
 #include "config.h"
 #include "update.h"
 #include "invert.h"
 #include "gpio.h"
 
-int gpioPins[28] = {-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001};	// DEFAULT SET AS UNINITALIZED
+/* SQL Injection Protection: Validate that prefix contains only safe characters.
+ * Prefix should only contain lower case letters (generated from hostname).
+ * Returns 1 if valid, 0 if contains suspicious characters.
+ */
+static int validate_prefix(const char *prefix) {
+    if (prefix == NULL || prefix[0] == '\0') return 0;
+    for (const char *p = prefix; *p; p++) {
+        if (!islower((unsigned char)*p)) {
+            printf("SECURITY: Invalid character in prefix: '%c' (0x%02x)\n", *p, (unsigned char)*p);
+            return 0;
+        }
+    }
+    return 1;
+}
+
+/* SQL Injection Protection: Validate that a string represents a valid integer.
+ * Returns the validated integer value, or -1 on error.
+ * This prevents injection via row data that might contain SQL syntax.
+ */
+static int validate_int_string(const char *str) {
+    if (str == NULL || str[0] == '\0') return -1;
+    char *endptr;
+    long val = strtol(str, &endptr, 10);
+    /* Ensure entire string was consumed (no trailing garbage) */
+    if (*endptr != '\0') {
+        printf("SECURITY: Non-integer data in row: '%s'\n", str);
+        return -1;
+    }
+    /* Ensure value is in valid range for GPIO pins (0-27) */
+    if (val < 0 || val > 27) {
+        printf("SECURITY: Pin value out of range: %ld\n", val);
+        return -1;
+    }
+    return (int)val;
+}
+
+int gpioPins[28] = {-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001,-1001};	/* 28 elements: pins 0-27, all DEFAULT SET AS UNINITALIZED */
 
 void update(){
+ /* Validate prefix before using in SQL queries */
+ if (!validate_prefix(config.prefix)) {
+  printf("update: Invalid prefix detected, aborting\n");
+  return;
+ }
+ 
  MYSQL *con = mysql_init(NULL);
   if (con == NULL){
    printf("update: %s", mysql_error(con));
@@ -24,6 +67,7 @@ void update(){
 
  char query[500] = {0};
  for(int x=0;x<=27;x++){
+  /* config.prefix validated at function entry - safe to use */
   snprintf(query, sizeof query, "SELECT `inverted`, `enabled`, `direction` FROM `gpio-conf` WHERE `enabled`=1 AND `address` LIKE '%%%sgpio%%' AND `pin` = %d", config.prefix, x);
   if (mysql_query(con, query)){
    printf("update: %s", mysql_error(con));
@@ -63,6 +107,7 @@ void update(){
   }
   mysql_free_result(result);
   memset(&query[0], 0, sizeof(query));
+  /* config.prefix validated at function entry - safe to use */
   snprintf(query, sizeof query, "INSERT INTO `gpio` (`address`, `pin`, `value`, `req`, `timestamp`) \
 				  VALUES ('%sgpio', %d, %d, -1001, UNIX_TIMESTAMP(NOW(6))*1000000) \
 				  ON DUPLICATE KEY UPDATE `value` = %d, `timestamp` = UNIX_TIMESTAMP(NOW(6))*1000000", config.prefix, x, gpioPins[x], gpioPins[x]);
@@ -75,6 +120,12 @@ void update(){
 }
 
 void updateOutput(void){
+ /* Validate prefix before using in SQL queries */
+ if (!validate_prefix(config.prefix)) {
+  printf("updateOutput: Invalid prefix detected, aborting\n");
+  return;
+ }
+ 
  MYSQL *con = mysql_init(NULL);
  if (con == NULL){
    printf("updateOutput: %s", mysql_error(con));
@@ -88,6 +139,7 @@ void updateOutput(void){
  }
 
  char query[500] = {0};
+ /* config.prefix validated at function entry - safe to use */
  snprintf(query, sizeof query, "Select `gpio-conf`.`inverted`, `gpio`.`pin`, `gpio`.`req`, `gpio-conf`.`direction` FROM `gpio` \
 				INNER JOIN `gpio-conf` \
 				WHERE `gpio-conf`.`address` = `gpio`.`address` \
@@ -141,7 +193,17 @@ void updateOutput(void){
     }
    }
    memset(&query[0], 0, sizeof(query));
-   snprintf(query, sizeof query, "UPDATE `gpio` SET `req` = -1001, `timestamp` = UNIX_TIMESTAMP(NOW(6))*1000000 WHERE `gpio`.`address` = '%sgpio' AND `gpio`.`pin` = %s", config.prefix, row[1]);
+   
+   /* CRITICAL SQL INJECTION FIX: Validate row[1] (pin number from DB) before using in query.
+    * An attacker with DB write access could inject SQL via the pin field. */
+   int validated_pin = validate_int_string(row[1]);
+   if (validated_pin < 0) {
+    printf("updateOutput: Skipping row with invalid pin data: '%s'\n", row[1]);
+    continue;  /* Skip this row, don't execute query with potentially malicious data */
+   }
+   
+   /* Both config.prefix and validated_pin are now safe to use */
+   snprintf(query, sizeof query, "UPDATE `gpio` SET `req` = -1001, `timestamp` = UNIX_TIMESTAMP(NOW(6))*1000000 WHERE `gpio`.`address` = '%sgpio' AND `gpio`.`pin` = %d", config.prefix, validated_pin);
    if (mysql_query(con, query)){
     printf("updateOutput: %s", mysql_error(con));
     exit(EXIT_FAILURE);
@@ -164,10 +226,9 @@ void updateOutput(void){
    while ((row = mysql_fetch_row(check))){
     if(config.checksum!=atoll(row[1])){
      initGpio();
-    }else{
     }
-    mysql_free_result(check);
    }
+   mysql_free_result(check);  /* moved outside loop - was freeing on every iteration */
   }
  }
  mysql_close(con);
