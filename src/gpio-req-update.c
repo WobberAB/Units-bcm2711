@@ -4,9 +4,9 @@
 #include "pid.h"
 
 int main(){
- pid_t pid_p = proc_find("gpio2sql");
+ pid_t pid_p = proc_find("units-bcm2711");
  if(pid_p==-1){
-  printf ("gpio2sql-service is not running. Exiting!\n");
+  printf ("units-bcm2711-service is not running. Exiting!\n");
   exit(EXIT_FAILURE);
  }else{
   printf ("update requested\n");

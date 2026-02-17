@@ -5,8 +5,8 @@ SOURCE_DIR=src
 OBJECT_DIR=obj
 LIBS=-I/usr/include/mariadb -lmariadb -pthread -ldl -lm -lpthread -lz -lpigpiod_if2
 
-$(BUILD_DIR)/gpio2sql: $(OBJECT_DIR)/main.o $(OBJECT_DIR)/config.o  $(OBJECT_DIR)/fileUtils.o $(OBJECT_DIR)/gpio.o $(OBJECT_DIR)/invert.o $(OBJECT_DIR)/pid.o $(OBJECT_DIR)/prefix.o $(OBJECT_DIR)/tables.o $(OBJECT_DIR)/update.o $(OBJECT_DIR)/bwlog.o
-	$(CC) -o $(BUILD_DIR)/gpio2sql $(OBJECT_DIR)/*.o $(CFLAGS) $(LIBS)
+$(BUILD_DIR)/units-bcm2711: $(OBJECT_DIR)/main.o $(OBJECT_DIR)/config.o  $(OBJECT_DIR)/fileUtils.o $(OBJECT_DIR)/gpio.o $(OBJECT_DIR)/invert.o $(OBJECT_DIR)/pid.o $(OBJECT_DIR)/prefix.o $(OBJECT_DIR)/tables.o $(OBJECT_DIR)/update.o $(OBJECT_DIR)/bwlog.o
+	$(CC) -o $(BUILD_DIR)/units-bcm2711 $(OBJECT_DIR)/*.o $(CFLAGS) $(LIBS)
 
 $(BUILD_DIR)/gpio-req-update: $(SOURCE_DIR)/gpio-req-update.c $(OBJECT_DIR)/pid.o
 	$(CC) -o $(BUILD_DIR)/gpio-req-update $(SOURCE_DIR)/gpio-req-update.c $(OBJECT_DIR)/pid.o
@@ -43,31 +43,31 @@ $(OBJECT_DIR)/fileUtils.o: $(SOURCE_DIR)/fileUtils.c
 
 
 install:
-	mkdir -p /usr/wobber/gpio2sql/binaries
+	mkdir -p /etc/units/bcm2711/
+	chown -R mysql:mysql /etc/units/bcm2711
 	mkdir -p /mnt/ramdisk/log
-	cp $(BUILD_DIR)/gpio2sql /usr/wobber/gpio2sql/binaries
-	cp $(BUILD_DIR)/gpio-req-update /usr/wobber/gpio2sql/binaries
-	chown -R mysql:mysql /usr/wobber/gpio2sql
 	chown -R mysql:mysql /mnt/ramdisk/log
-	mkdir -p /usr/wobber/gpio2sql
-	cp -rvn conf/* /usr/wobber/gpio2sql/
+	cp $(BUILD_DIR)/units-bcm2711 /usr/bin/
+	cp $(BUILD_DIR)/gpio-req-update /usr/bin/
+	cp -rvn conf/* /etc/units/bcm2711/
 
 remove:
-	rm -rf /mnt/ramdisk/log/gpio2sql.log
-	rm -rf /usr/wobber/gpio2sql
+	rm -rf /mnt/ramdisk/log/units-bcm2711.log
+	rm -rf /usr/bin/units-bcm2711
+	rm -rf /usr/bin/gpio-req-update
 
 service:
-	cp -v systemd/gpio2sql.service /etc/systemd/system/gpio2sql.service
+	cp -v systemd/units-bcm2711.service /etc/systemd/system/units-bcm2711.service
 	systemctl daemon-reload
-	systemctl enable gpio2sql
-	service gpio2sql restart
-	service gpio2sql status
+	systemctl enable units-bcm2711
+	service units-bcm2711 restart
+	service units-bcm2711 status
 
-all: $(BUILD_DIR)/gpio2sql $(BUILD_DIR)/gpio-req-update install service
+all: $(BUILD_DIR)/units-bcm2711 $(BUILD_DIR)/gpio-req-update install service
 
 clean:
-	rm -f $(BUILD_DIR)/gpio2sql
-	rm -f $(OBJECT_DIR)/*.o
+	rm -f $(BUILD_DIR)/*
+	rm -f $(OBJECT_DIR)/*
 
 dist: clean
-	tar cvzf ../gpio2sql-13RC2-`date +%F%H%M`-`hostname`.tar.gz ../gpio2sql
+	tar cvzf ../units-bcm2711-13RC2-`date +%F%H%M`-`hostname`.tar.gz ../units-bcm2711

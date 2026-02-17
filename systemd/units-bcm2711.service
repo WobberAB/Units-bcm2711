@@ -1,13 +1,13 @@
 [Unit]
-Description=gpio2sql service
+Description=units-bcm2711 service
 After=mariadb.service
 
 [Service]
 User=mysql
 Group=mysql
 Type=simple
-ExecStart=/usr/wobber/gpio2sql/binaries/gpio2sql
-ExecStop=killall gpio2sql
+ExecStart=/usr/bin/units-bcm2711
+ExecStop=killall units-bcm2711
 Restart=on-failure
 RestartSec=10
 KillMode=process

@@ -5,7 +5,7 @@
 #include <time.h>
 #include "bwlog.h"
 
-static char LOGFILE[250] =  "/mnt/ramdisk/log/gpio2sql.log";
+static char LOGFILE[250] =  "/mnt/ramdisk/log/units-bcm2711.log";
 
 void bwlog(char *message, ...){
  char buffer[10000];
@@ -13,7 +13,7 @@ void bwlog(char *message, ...){
  fp  = fopen (LOGFILE, "a");
  if (fp == NULL) {
   char homeFile[250];
-  strcat(strcpy(homeFile, getenv("HOME")), "/gpio2sql.log");
+  strcat(strcpy(homeFile, getenv("HOME")), "/units-bcm2711.log");
   printf("Can't open %s for output, reverting to %s instead.\n", LOGFILE, homeFile);
   memset(&LOGFILE[0], 0, sizeof(LOGFILE));
   snprintf(LOGFILE, sizeof LOGFILE, "%s", homeFile);
