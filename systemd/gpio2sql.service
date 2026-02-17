@@ -1,0 +1,15 @@
+[Unit]
+Description=gpio2sql service
+After=mariadb.service
+
+[Service]
+User=mysql
+Group=mysql
+Type=simple
+ExecStart=/usr/wobber/gpio2sql/binaries/gpio2sql
+ExecStop=killall gpio2sql
+Restart=on-failure
+RestartSec=10
+KillMode=process
+[Install]
+WantedBy=multi-user.target
