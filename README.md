@@ -11,8 +11,8 @@ A daemon that bridges Raspberry Pi 3 and 4 GPIO pins with a MySQL database, enab
 - ✅ **Glitch filtering** (debounce) support
 - ✅ **MySQL integration** for remote monitoring and control
 - ✅ **Security hardened** with SQL injection protection
-- ✅ **Database-driven configuration** for all GPIO pins
-
+- ✅ **Database-driven configuration** for all GPIO pins 
+  
 ## System Requirements
 
 ### Software
@@ -26,7 +26,7 @@ A daemon that bridges Raspberry Pi 3 and 4 GPIO pins with a MySQL database, enab
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y libgpiod-dev pigpiod  libmariadb-dev build-essential libmariadb-dev-compat mariadb-server
+sudo apt-get install -y libpigpiod-if-dev libmariadb-dev build-essential libmariadb-dev-compat mariadb-server
 
 ```
 
