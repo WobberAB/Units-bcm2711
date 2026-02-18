@@ -31,7 +31,13 @@ sudo apt-get install -y libpigpiod-if-dev libpigpiod-if2-1t64 libmariadb-dev bui
 ```
 
 ### 2. Configure MySQL
-(Remember to adjust settings to fit your project)
+From shell, run:
+
+```bash
+sudo mysql -u root
+```
+
+Then copy, edit and paste the following
 ```sql
 CREATE DATABASE ioadc;
 CREATE USER 'defaultuser'@'localhost' IDENTIFIED BY 'defaultpassword';
