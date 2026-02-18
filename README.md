@@ -41,7 +41,7 @@ Then copy, edit and paste the following
 ```sql
 CREATE DATABASE ioadc;
 CREATE USER 'defaultuser'@'localhost' IDENTIFIED BY 'defaultpassword';
-GRANT SELECT, INSERT, UPDATE ON ioadc.* TO 'defaultuser'@'localhost';
+GRANT CREATE, SELECT, INSERT, UPDATE ON ioadc.* TO 'defaultuser'@'localhost';
 FLUSH PRIVILEGES;
 ```
 ### 3. pigpiod missing from Trixie(13)
