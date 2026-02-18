@@ -38,8 +38,17 @@ CREATE USER 'defaultuser'@'localhost' IDENTIFIED BY 'defaultpassword';
 GRANT SELECT, INSERT, UPDATE ON ioadc.* TO 'defaultuser'@'localhost';
 FLUSH PRIVILEGES;
 ```
+### 3. pigpiod missing from Trixie(13)
+It seems as if the team has removed pigpiod from repos. fetch and compile/install with
+```
+wget https://github.com/joan2937/pigpio/archive/master.zip
+unzip master.zip
+cd pigpio-master
+make
+sudo make install
+```
 
-### 3. Compile and Install
+### 4. Compile and Install
 
 ```bash
 # Clone or extract source code
