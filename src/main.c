@@ -38,8 +38,8 @@ int main(){
  printf("Using table prefix: %s", config.prefix);
  config.pi = pigpio_start(config.pigpiodHost, config.pigpiodPort);
  createTables();
- printf("Delay between automatic(non-interrupt) update: %d Sec", config.delay);
- printf("gpio SQL Daemon v%s started successfully", REVISION);
+ printf("Delay between updates: %d Sec", config.delay);
+ printf("bcm2711 gpio SQL Daemon v%s started successfully", REVISION);
 
  initGpio();
  update();

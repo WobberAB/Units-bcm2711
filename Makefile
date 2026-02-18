@@ -8,9 +8,6 @@ LIBS=-I/usr/include/mariadb -lmariadb -pthread -ldl -lm -lpthread -lz -lpigpiod_
 $(BUILD_DIR)/units-bcm2711: $(OBJECT_DIR)/main.o $(OBJECT_DIR)/config.o  $(OBJECT_DIR)/fileUtils.o $(OBJECT_DIR)/gpio.o $(OBJECT_DIR)/invert.o $(OBJECT_DIR)/pid.o $(OBJECT_DIR)/prefix.o $(OBJECT_DIR)/tables.o $(OBJECT_DIR)/update.o
 	$(CC) -o $(BUILD_DIR)/units-bcm2711 $(OBJECT_DIR)/*.o $(CFLAGS) $(LIBS)
 
-$(BUILD_DIR)/gpio-req-update: $(SOURCE_DIR)/gpio-req-update.c $(OBJECT_DIR)/pid.o
-	$(CC) -o $(BUILD_DIR)/gpio-req-update $(SOURCE_DIR)/gpio-req-update.c $(OBJECT_DIR)/pid.o
-
 $(OBJECT_DIR)/main.o: $(SOURCE_DIR)/main.c
 	$(CC) -c $(SOURCE_DIR)/main.c -o $(OBJECT_DIR)/main.o
 
@@ -50,8 +47,7 @@ install:
 remove:
 	rm -rf /mnt/ramdisk/log/units-bcm2711.log
 	rm -rf /usr/bin/units-bcm2711
-	rm -rf /usr/bin/gpio-req-update
-
+	
 service:
 	cp -v systemd/units-bcm2711.service /etc/systemd/system/units-bcm2711.service
 	systemctl daemon-reload
