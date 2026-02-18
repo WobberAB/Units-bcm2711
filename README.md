@@ -41,6 +41,8 @@ FLUSH PRIVILEGES;
 ### 3. pigpiod missing from Trixie(13)
 It seems as if the team has removed pigpiod from repos. fetch and compile/install with
 ```
+sudo apt install python3-distutils-extra -y
+
 wget https://github.com/joan2937/pigpio/archive/master.zip
 unzip master.zip
 cd pigpio-master
