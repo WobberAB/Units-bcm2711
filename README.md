@@ -6,7 +6,7 @@ A daemon that bridges Raspberry Pi 3 and 4 GPIO pins with a MySQL database, enab
 
 - ✅ **Full Raspberry Pi 3 & 4 support** using pigpiod
 - ✅ **GPIO input/output** with pull-up/down resistor configuration
-- ✅ **Hardware PWM** on enabled pins (0-100% duty cycle)
+- ✅ **Hardware PWM** on pins 12/13/19 (0-100% duty cycle)
 - ✅ **Edge detection** for interrupt-driven updates
 - ✅ **Glitch filtering** (debounce) support
 - ✅ **MySQL integration** for remote monitoring and control
@@ -83,11 +83,11 @@ UPDATE `gpio-conf` SET
     `enabled` = 1
 WHERE `pin` = 22;
 
--- Configure pin 18 as PWM output
+-- Configure pin 12 as PWM output
 UPDATE `gpio-conf` SET 
     `direction` = 2,    -- PWM
     `enabled` = 1
-WHERE `pin` = 18;
+WHERE `pin` = 12;
 ```
 
 ### Controlling GPIO
@@ -101,8 +101,8 @@ UPDATE `gpio` SET `req` = 1 WHERE `pin` = 17;
 -- Turn pin 17 LOW
 UPDATE `gpio` SET `req` = 0 WHERE `pin` = 17;
 
--- Set PWM on pin 18 to 50%
-UPDATE `gpio` SET `req` = 50 WHERE `pin` = 18;
+-- Set PWM on pin 12 to 50%
+UPDATE `gpio` SET `req` = 50 WHERE `pin` = 12;
 
 -- Read current value of pin 22
 SELECT `value` FROM `gpio` WHERE `pin` = 22;
