@@ -26,7 +26,7 @@ A daemon that bridges Raspberry Pi 3 and 4 GPIO pins with a MySQL database, enab
 
 ```bash
 sudo apt-get update
-sudo apt-get install -y libpigpiod-if-dev libmariadb-dev build-essential libmariadb-dev-compat mariadb-server
+sudo apt-get install -y libpigpiod-if-dev libpigpiod-if2-1t64 libmariadb-dev build-essential libmariadb-dev-compat mariadb-server
 
 ```
 
