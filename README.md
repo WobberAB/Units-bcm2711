@@ -59,11 +59,9 @@ sudo make install
 ### 4. Compile and Install
 
 ```bash
-# Clone or extract source code
-cd /path/to/source
-
-# Compile and install
-# (this also installs default configuration files and systemd service)
+# Clone this repository and extract source code
+git clone https://github.com/WobberAB/Units-bcm2711.git
+cd Units-bcm2711
 
 # for new install
 sudo make all
