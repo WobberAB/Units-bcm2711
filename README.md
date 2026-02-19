@@ -257,8 +257,8 @@ MySQL Database ← → units-bcm2711 daemon ← → pigpiod ← → Hardware
 
 ## Limitations
 
-1. **Raspberry Pi 3 and 4 only**: Code uses pigpiod, specific to Pi 3 and 4
-
+**Raspberry Pi 3 and 4 only**: Code uses pigpiod, specific to Pi 3 and 4
+(bcm2835 & bcm2711 chipset only)
 ## License
 GPLv2 
 
