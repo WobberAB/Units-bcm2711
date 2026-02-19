@@ -240,7 +240,7 @@ cat /etc/units/bcm2711/mysql/*.cnf
 
 - **CPU Usage**: ~1-2% idle, +5-10% per active PWM pin
 - **Memory Usage**: ~5-8MB
-- **Update Latency**: <1ms for GPIO operations
+- **Update Latency**: <200ms for GPIO operations
 - **Database Polling**: Configurable (default 1 second)
 
 ## Security Notes
