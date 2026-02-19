@@ -59,7 +59,7 @@ sudo make install
 ```bash
 sudo nano /etc/systemd/system/pigpiod.service
 ```
-paste the following
+Paste the following
 ```bash
 [Unit]
 Description=Daemon required to control GPIO pins via pigpio
@@ -71,7 +71,7 @@ Type=forking
 WantedBy=multi-user.target
 ```
 
-and finaly enable pigpiod service on boot
+Finaly,we enable pigpiod service on boot
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl enable pigpiod.service
