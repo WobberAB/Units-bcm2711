@@ -79,10 +79,10 @@ sudo systemctl start pigpiod.service
 ```
 
 
-### 4. Compile and Install
+### 5. Compile and Install
 
 ```bash
-# Clone this repository and extract source code
+# Clone this repository
 git clone https://github.com/WobberAB/Units-bcm2711.git
 cd Units-bcm2711
 
