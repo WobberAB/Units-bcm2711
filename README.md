@@ -55,6 +55,29 @@ cd pigpio-master
 make
 sudo make install
 ```
+### 4. Create pigpiod.service for systemd
+```bash
+sudo nano /etc/systemd/system/pigpiod.service
+```
+paste the following
+```bash
+[Unit]
+Description=Daemon required to control GPIO pins via pigpio
+[Service]
+ExecStart=/usr/local/bin/pigpiod -x 0xFFFFFFF
+ExecStop=/bin/systemctl kill -s SIGKILL pigpiod
+Type=forking
+[Install]
+WantedBy=multi-user.target
+```
+
+and finaly enable pigpiod service on boot
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable pigpiod.service
+sudo systemctl start pigpiod.service
+```
+
 
 ### 4. Compile and Install
 
