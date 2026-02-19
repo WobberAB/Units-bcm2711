@@ -10,10 +10,6 @@
 #include "update.h"
 #include "gpio.h"
 
-/* SQL Injection Protection: Validate that prefix contains only safe characters.
- * Prefix should only contain lowercase letters (generated from hostname).
- * Returns 1 if valid, 0 if contains suspicious characters.
- */
 static int validate_prefix(const char *prefix) {
     if (prefix == NULL || prefix[0] == '\0') return 0;
     for (const char *p = prefix; *p; p++) {
@@ -72,7 +68,6 @@ void initGpio(){
      //IF OUTPUT
      set_mode(config.pi, pin, PI_OUTPUT);	// set pin as output
      printf("CREATING OUTPUT: Pin %d", pin);
-//     gpio_write(config.pi, pin, 0);		// write pin low(-negative) as default
     break;
 
     case 1:
@@ -128,7 +123,6 @@ void initGpio(){
     /* Set as general input only for saftey purpose during bootstrapping */
      set_mode(config.pi, pin, PI_OUTPUT);					// set pin as output
      printf("CREATING PWM: Pin %d", pin);
-//     gpio_write(config.pi,pin, 0);						// write pin low(-negative) as default
     break;
 
     default:
@@ -145,7 +139,6 @@ void initGpio(){
   for (int pin=0; pin<=27; pin++){
    if((pin!=2)&&(pin!=3)){ // skip i2c pins
     memset(&query[0], 0, sizeof(query));
-    /* config.prefix validated at function entry - safe to use */
     snprintf(query, sizeof query,"INSERT INTO `gpio-conf` (`address`, `pin`, `direction`, `pullup`, `interrupt`, `inverted`, `glitch`, `enabled`) \
 		  VALUES ('%sgpio', %d, 1, 0, 0, 0, -1001, 1)", config.prefix, pin);
     if (mysql_query(con, query)){
@@ -154,7 +147,6 @@ void initGpio(){
     }
    }else{
     memset(&query[0], 0, sizeof(query));
-    /* config.prefix validated at function entry - safe to use */
     snprintf(query, sizeof query,"INSERT INTO `gpio-conf` (`address`, `pin`, `direction`, `pullup`, `interrupt`, `inverted`, `glitch`, `enabled`) \
 		  VALUES ('%sgpio', %d, 1, 0, 0, 0, -1001, 0)", config.prefix, pin);
     if (mysql_query(con, query)){
